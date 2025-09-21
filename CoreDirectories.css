@@ -1,0 +1,18 @@
+lettera-prolang/
+ ├── src/
+ │   ├── lexer.py
+ │   ├── parser.py
+ │   ├── ast.py
+ │   ├── ail.py        # Algorithm Insertion Layer
+ │   ├── irgen.py
+ │   ├── nasmgen.py
+ │   ├── sealed.py     # Envelope sealing
+ │   ├── dual.py       # Cross-program replies
+ │   ├── entangle.py   # Entangled networking
+ │   └── main.py       # CLI driver
+ ├── stdlib/
+ │   └── io.let
+ ├── tests/
+ │   └── hello.let
+ ├── Makefile
+ └── README.md
