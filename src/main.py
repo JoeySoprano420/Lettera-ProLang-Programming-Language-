@@ -368,3 +368,83 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+import subprocess
+import os
+from sealed import inject_seal
+
+# Compile down to object file
+subprocess.run(["llc", "output.bc", "-filetype=obj", "-o", "output.o"], check=True)
+
+# Link with runtime
+subprocess.run(["clang", "output.o", "src/runtime.c", "-o", "hello.out"], check=True)
+
+# Inject seal into final binary
+seal = create_seal(serialized_ast, ir_code)
+if inject_seal("hello.out", seal):
+    print("[Lettera] Final binary sealed → hello.out")
+else:
+    print("[Lettera] Seal injection skipped or failed.")
+
+seal_enabled = "--seal" in args
+if seal_enabled:
+    # run sealing logic
+
+import subprocess
+import os
+from sealed import inject_seal
+
+# Compile down to object file
+subprocess.run(["llc", "output.bc", "-filetype=obj", "-o", "output.o"], check=True)
+
+# Link with runtime
+subprocess.run(["clang", "output.o", "src/runtime.c", "-o", "hello.out"], check=True)
+
+# Inject seal into final binary
+seal = create_seal(serialized_ast, ir_code)
+if inject_seal("hello.out", seal):
+    print("[Lettera] Final binary sealed → hello.out")
+else:
+    print("[Lettera] Seal injection skipped or failed.")
+
+# ✅ Automatically run the binary to verify seal
+try:
+    result = subprocess.run(["./hello.out"], check=True, capture_output=True, text=True)
+    print("[Lettera] Runtime output:")
+    print(result.stdout)
+except subprocess.CalledProcessError as e:
+    print("[Lettera] Runtime verification failed:")
+    print(e.stderr)
+
+run_enabled = "--run" in args
+if run_enabled:
+    # run the binary
+
+seal_enabled = "--seal" in args
+if seal_enabled:
+    # Compile object file
+    subprocess.run(["llc", "output.bc", "-filetype=obj", "-o", "output.o"], check=True)
+
+    # Link with runtime
+    subprocess.run(["clang", "output.o", "src/runtime.c", "-o", "hello.out"], check=True)
+
+    # Inject seal
+    if inject_seal("hello.out", seal):
+        print("[Lettera] Final binary sealed → hello.out")
+    else:
+        print("[Lettera] Seal injection skipped or failed.")
+
+    # Run binary for verification
+    try:
+        result = subprocess.run(["./hello.out"], check=True, capture_output=True, text=True)
+        print("[Lettera] Runtime output:")
+        print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print("[Lettera] Runtime verification failed:")
+        print(e.stderr)
+
+exe_name = "hello.out.exe" if os.name == "nt" else "./hello.out"
+subprocess.run([exe_name], ...)
+
+print("[Lettera] Running binary for seal verification...")
+
