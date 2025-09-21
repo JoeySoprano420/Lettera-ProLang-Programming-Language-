@@ -161,3 +161,10 @@ Lettera ProLang is a symmetry-driven, correspondence-structured language. It enf
 ---
 
 
+Pipeline: 
+
+Lexer → Parser → AST (dodecagrams) → AIL (Entanglement Middleware) 
+→ IRGen (LLVM IR) → NASM Backend → .exe/.out (sealed)
+
+## -----
+
