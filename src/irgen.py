@@ -1,50 +1,74 @@
 from llvmlite import ir
 
+# Symbol table for variables
+class SymbolTable:
+    def __init__(self, builder):
+        self.vars = {}
+        self.builder = builder
+
+    def declare(self, name, value):
+        ptr = self.builder.alloca(value.type, name=name)
+        self.builder.store(value, ptr)
+        self.vars[name] = ptr
+
+    def load(self, name):
+        return self.builder.load(self.vars[name], name=name)
+
 def generate_ir(ast):
-    # Create an LLVM module
     module = ir.Module(name="lettera_module")
 
-    # Declare printf
+    # printf declaration
     voidptr_ty = ir.IntType(8).as_pointer()
     printf_ty = ir.FunctionType(ir.IntType(32), [voidptr_ty], var_arg=True)
     printf = ir.Function(module, printf_ty, name="printf")
 
-    # Define main function
+    # main function
     func_ty = ir.FunctionType(ir.IntType(32), [])
     main_fn = ir.Function(module, func_ty, name="main")
     block = main_fn.append_basic_block(name="entry")
     builder = ir.IRBuilder(block)
+    symbols = SymbolTable(builder)
 
-    # Walk AST to find Above/Below values
-    msg = None
+    # Traverse AST: handle Equations
     for node in ast.children:
         if node.kind == "Block":
-            above = [c for c in node.children if c.kind == "Above"][0]
-            msg = above.value[1].strip('"')
-            break
+            eq = node.children[0]  # Equation
+            above = node.children[1]
+            below = node.children[2]
 
-    if msg is None:
-        msg = "Hello, World"
+            lhs, rhs = eq.value
+            # Support numbers (base-12 → int) and strings
+            if rhs.isdigit() or all(c in "0123456789ab" for c in rhs):
+                val = int(rhs, 12)  # base-12 conversion
+                llvm_val = ir.Constant(ir.IntType(32), val)
+            else:
+                # treat as string literal
+                rhs_val = rhs.strip('"') + "\0"
+                str_ty = ir.ArrayType(ir.IntType(8), len(rhs_val))
+                global_str = ir.GlobalVariable(module, str_ty, name=f"{lhs}_str")
+                global_str.global_constant = True
+                global_str.initializer = ir.Constant(str_ty, bytearray(rhs_val.encode()))
+                llvm_val = global_str
 
-    # Create global string
-    fmt_str = msg + "\n\0"
-    global_fmt = ir.GlobalVariable(module,
-                                   ir.ArrayType(ir.IntType(8), len(fmt_str)),
-                                   name="fmt")
-    global_fmt.linkage = "internal"
-    global_fmt.global_constant = True
-    global_fmt.initializer = ir.Constant(
-        ir.ArrayType(ir.IntType(8), len(fmt_str)),
-        bytearray(fmt_str.encode("utf8"))
-    )
+            symbols.declare(lhs, llvm_val if isinstance(llvm_val, ir.Constant) else llvm_val)
 
-    # Get pointer to string
-    fmt_ptr = builder.gep(global_fmt, [ir.IntType(32)(0), ir.IntType(32)(0)])
-
-    # Call printf
-    builder.call(printf, [fmt_ptr])
+            # Handle Above + Below Print statements
+            for section in [above, below]:
+                if section.value[0].lower() == "print":
+                    msg = section.value[1].strip('"')
+                    if msg in symbols.vars:
+                        ptr = symbols.load(msg)
+                        builder.call(printf, [ptr])
+                    else:
+                        # print raw literal
+                        fmt_str = msg + "\n\0"
+                        arr_ty = ir.ArrayType(ir.IntType(8), len(fmt_str))
+                        global_fmt = ir.GlobalVariable(module, arr_ty, name=f"str_{lhs}")
+                        global_fmt.global_constant = True
+                        global_fmt.initializer = ir.Constant(arr_ty, bytearray(fmt_str.encode()))
+                        fmt_ptr = builder.gep(global_fmt, [ir.IntType(32)(0), ir.IntType(32)(0)])
+                        builder.call(printf, [fmt_ptr])
 
     # Return 0
     builder.ret(ir.IntType(32)(0))
-
     return str(module)
