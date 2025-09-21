@@ -1,0 +1,18 @@
+Module:
+    Target: x86_64;
+    Version: 1.0;
+    Subject: Greetings Program;
+    Address: main@localhost;
+
+Entry:
+    Func main():;
+
+Block:
+    Equation: Greeting = hello world;
+    Above:
+        Print "Hello, World";
+    Below:
+        Print "Hello, World";
+
+End:
+    Return 0;
