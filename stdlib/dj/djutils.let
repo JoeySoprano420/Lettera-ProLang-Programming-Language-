@@ -1,0 +1,25 @@
+Module:
+    Target: x86_64;
+    Version: 1.0;
+    Subject: DJ Utility Library;
+
+Entry:
+    Func lib():;
+
+Block:
+    Equation: Shuffle = (Playlist);
+    Above: # Randomize
+    Below: # Verified runtime order
+
+Block:
+    Equation: DurationSum = (Tracks...);
+    Above: # Manual estimate
+    Below: # Verified runtime calc
+
+Block:
+    Equation: SuggestNext = (Track);
+    Above: # Human guess
+    Below: # AI/AIL suggestion
+
+End:
+    Return 0;
