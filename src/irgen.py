@@ -108,3 +108,36 @@ def handle_djcmd(cmd, args, builder, module, printf):
         return gv
 
     return None
+
+from llvmlite import ir
+
+def declare_dj_runtime(module):
+    i32 = ir.IntType(32)
+    i8ptr = ir.IntType(8).as_pointer()
+
+    funcs = {
+        "dj_bpm": ir.FunctionType(ir.VoidType(), [i32]),
+        "dj_key": ir.FunctionType(ir.VoidType(), [i8ptr]),
+        "dj_energy": ir.FunctionType(ir.VoidType(), [i32]),
+        "dj_genre": ir.FunctionType(ir.VoidType(), [i8ptr]),
+        "dj_crossfade": ir.FunctionType(ir.VoidType(), [i32, i8ptr]),
+        "dj_filter": ir.FunctionType(ir.VoidType(), [i8ptr, i8ptr]),
+        "dj_loop": ir.FunctionType(ir.VoidType(), [i32, i32]),
+        "dj_drop": ir.FunctionType(ir.VoidType(), [i8ptr, i32]),
+        "dj_playlist": ir.FunctionType(ir.VoidType(), [i8ptr]),
+        "dj_order": ir.FunctionType(ir.VoidType(), [i8ptr, i8ptr, i8ptr]),
+        "dj_record": ir.FunctionType(ir.VoidType(), [i8ptr]),
+        "dj_seal": ir.FunctionType(ir.VoidType(), [i8ptr]),
+        "dj_log": ir.FunctionType(ir.VoidType(), [i8ptr]),
+    }
+    return {name: ir.Function(module, ftype, name=name) for name, ftype in funcs.items()}
+
+def str_constant(module, builder, name, s):
+    s += "\0"
+    arr_ty = ir.ArrayType(ir.IntType(8), len(s))
+    gv = ir.GlobalVariable(module, arr_ty, name=name)
+    gv.global_constant = True
+    gv.initializer = ir.Constant(arr_ty, bytearray(s.encode()))
+    return builder.gep(gv, [ir.IntType(32)(0), ir.IntType(32)(0)])
+
+
