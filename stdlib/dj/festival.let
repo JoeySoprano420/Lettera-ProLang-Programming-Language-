@@ -1,0 +1,36 @@
+Import "dj/djmeta.let"
+Import "dj/djtransitions.let"
+Import "dj/djeffects.let"
+Import "dj/djrecord.let"
+
+Module:
+    Target: x86_64;
+    Version: 2.0;
+    Subject: Festival Opener;
+    Address: opener@dj;
+
+Entry:
+    Func main():;
+
+Block:
+    Equation: Track1 = "SunsetDrive.mp3";
+    Above: BPM=128; Key="Am"; Genre="House";
+    Below: BPM=128; Key="Am"; Genre="House";
+
+Block:
+    Equation: Track2 = "MoonlightFlow.mp3";
+    Above: BPM=122; Key="C#m"; Genre="Trance";
+    Below: BPM=122; Key="C#m"; Genre="Trance";
+
+Block:
+    Equation: Transition1 = Track1 → Track2;
+    Above: Crossfade(8s,"linear"); Filter("lowpass","4s");
+    Below: Crossfade(8s,"linear"); Filter("lowpass","4s");
+
+Block:
+    Equation: Archive = "festival_set";
+    Above: RecordSet("set.wav"); SealSet("sha256");
+    Below: RecordSet("set.wav"); SealSet("sha256");
+
+End:
+    Return 0;
