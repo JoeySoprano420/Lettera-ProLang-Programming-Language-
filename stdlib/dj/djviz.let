@@ -1,0 +1,20 @@
+Module:
+    Target: x86_64;
+    Version: 1.0;
+    Subject: DJ Visuals Library;
+
+Entry:
+    Func lib():;
+
+Block:
+    Equation: Visual = (Effect, Trigger);
+    Above: # e.g. Visual("strobe", "drop")
+    Below: # Synced runtime event
+
+Block:
+    Equation: ColorMap = (Track, Palette);
+    Above: # Track color theme
+    Below: # Projected runtime
+
+End:
+    Return 0;
