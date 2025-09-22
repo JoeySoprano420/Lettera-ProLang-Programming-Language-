@@ -185,3 +185,13 @@ def handle_dj_command(cmd, args, builder, module, dj_funcs):
         ptr = str_constant(module, builder, "logevt", args[0].strip('"'))
         builder.call(dj_funcs["dj_log"], [ptr])
 
+def handle_dj_audio(cmd, args, builder, module, dj_funcs):
+    if cmd == "Play":
+        ptr = str_constant(module, builder, "playfile", args[0].strip('"'))
+        builder.call(dj_funcs["dj_play"], [ptr])
+    elif cmd == "Crossfade":
+        a = str_constant(module, builder, "filea", args[0].strip('"'))
+        b = str_constant(module, builder, "fileb", args[1].strip('"'))
+        duration = ir.Constant(ir.IntType(32), int(args[2].replace("s","")))
+        builder.call(dj_funcs["dj_crossfade"], [a, b, duration])
+
