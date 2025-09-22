@@ -1,0 +1,28 @@
+Import "dj/djeffects.let"
+
+Module:
+    Target: x86_64;
+    Version: 3.1;
+    Subject: Effects Demo;
+    Address: fx@dj;
+
+Entry:
+    Func main():;
+
+Block:
+    Equation: Track = "Bassline.wav";
+    Above: Filter("Bassline.wav","lowpass","0.2");
+    Below: Filter("Bassline.wav","lowpass","0.2");
+
+Block:
+    Equation: Drop1 = "Bassline.wav";
+    Above: Drop("Bassline.wav", 5);
+    Below: Drop("Bassline.wav", 5);
+
+Block:
+    Equation: Loop1 = "Beat.wav";
+    Above: Loop("Beat.wav", 10, 4, 3);
+    Below: Loop("Beat.wav", 10, 4, 3);
+
+End:
+    Return 0;
