@@ -1,0 +1,29 @@
+Import "dj/djmeta.let"
+Import "dj/djtransitions.let"
+
+Module:
+    Target: x86_64;
+    Version: 3.0;
+    Subject: Real Audio Demo;
+    Address: realdj@club;
+
+Entry:
+    Func main():;
+
+Block:
+    Equation: Track1 = "TrackA.wav";
+    Above: BPM=120; Key="Am";
+    Below: BPM=120; Key="Am";
+
+Block:
+    Equation: Track2 = "TrackB.wav";
+    Above: BPM=124; Key="C#m";
+    Below: BPM=124; Key="C#m";
+
+Block:
+    Equation: Transition = Track1 → Track2;
+    Above: Crossfade("TrackA.wav","TrackB.wav",8s);
+    Below: Crossfade("TrackA.wav","TrackB.wav",8s);
+
+End:
+    Return 0;
