@@ -1,0 +1,25 @@
+Module:
+    Target: x86_64;
+    Version: 1.0;
+    Subject: DJ Recording Library;
+
+Entry:
+    Func lib():;
+
+Block:
+    Equation: RecordSet = (FileName);
+    Above: # Start/stop recording
+    Below: # Archive to disk
+
+Block:
+    Equation: SealSet = (Hash);
+    Above: # Cryptographic seal
+    Below: # Embedded in binary
+
+Block:
+    Equation: Log = (Event);
+    Above: # Runtime event logging
+    Below: # Persist for archive
+
+End:
+    Return 0;
