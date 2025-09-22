@@ -448,3 +448,5 @@ subprocess.run([exe_name], ...)
 
 print("[Lettera] Running binary for seal verification...")
 
+subprocess.run(["clang", "output.o", "src/dj_runtime.c", "-o", "djset.out"])
+
