@@ -1,0 +1,25 @@
+Module:
+    Target: x86_64;
+    Version: 1.0;
+    Subject: DJ Set Library;
+
+Entry:
+    Func lib():;
+
+Block:
+    Equation: Playlist = (Name, Tracks...);
+    Above: # Human-defined order
+    Below: # Auto-optimized by BPM/Key
+
+Block:
+    Equation: Order = (TrackA, TrackB, Method);
+    Above: # Manual sequencing
+    Below: # Verified transition
+
+Block:
+    Equation: Merge = (PlaylistA, PlaylistB);
+    Above: # Merge two sets
+    Below: # Collab reply
+
+End:
+    Return 0;
