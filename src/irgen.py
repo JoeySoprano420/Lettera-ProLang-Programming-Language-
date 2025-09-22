@@ -195,3 +195,21 @@ def handle_dj_audio(cmd, args, builder, module, dj_funcs):
         duration = ir.Constant(ir.IntType(32), int(args[2].replace("s","")))
         builder.call(dj_funcs["dj_crossfade"], [a, b, duration])
 
+def handle_dj_audio_effects(cmd, args, builder, module, dj_funcs):
+    if cmd == "Filter":
+        fileptr = str_constant(module, builder, "fileflt", args[0].strip('"'))
+        tptr = str_constant(module, builder, "ftype", args[1].strip('"'))
+        pptr = str_constant(module, builder, "fparam", args[2].strip('"'))
+        builder.call(dj_funcs["dj_filter"], [fileptr, tptr, pptr])
+    elif cmd == "Loop":
+        fileptr = str_constant(module, builder, "fileloop", args[0].strip('"'))
+        start = ir.Constant(ir.IntType(32), int(args[1]))
+        length = ir.Constant(ir.IntType(32), int(args[2]))
+        repeat = ir.Constant(ir.IntType(32), int(args[3]))
+        builder.call(dj_funcs["dj_loop"], [fileptr, start, length, repeat])
+    elif cmd == "Drop":
+        fileptr = str_constant(module, builder, "filedrop", args[0].strip('"'))
+        intensity = ir.Constant(ir.IntType(32), int(args[1]))
+        builder.call(dj_funcs["dj_drop"], [fileptr, intensity])
+
+
