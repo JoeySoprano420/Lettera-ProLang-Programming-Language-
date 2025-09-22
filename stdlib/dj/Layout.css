@@ -1,0 +1,11 @@
+lettera-prolang/
+ ├── stdlib/
+ │   └── dj/
+ │       ├── djmeta.let          # Track metadata
+ │       ├── djtransitions.let   # Transitions + crossfades
+ │       ├── djeffects.let       # FX: filters, loops, drops
+ │       ├── djset.let           # Playlist + set planning
+ │       ├── djnet.let           # Networking + sync
+ │       ├── djviz.let           # Visuals integration
+ │       ├── djrecord.let        # Set logging + sealing
+ │       └── djutils.let         # Utility functions
