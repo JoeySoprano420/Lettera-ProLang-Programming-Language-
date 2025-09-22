@@ -1,0 +1,24 @@
+Module:
+    Target: x86_64;
+    Version: 1.0;
+    Subject: DJ Transition Library;
+
+Entry:
+    Func lib():;
+
+Block:
+    Equation: Crossfade = (Duration, Type);
+    Above:
+        # Crossfade transition
+    Below:
+        # Crossfade transition;
+
+Block:
+    Equation: Filter = (Type, Sweep);
+    Above:
+        # Filter effect
+    Below:
+        # Filter effect;
+
+End:
+    Return 0;
