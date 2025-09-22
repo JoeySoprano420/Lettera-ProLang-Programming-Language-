@@ -5,41 +5,21 @@
 #include <sndfile.h>
 #include <math.h>
 
-// Simple audio buffer struct
+// Track buffer
 typedef struct {
     SNDFILE *file;
     SF_INFO info;
     float *buffer;
-    int position;
     int frames;
+    int position;
 } Track;
 
-// PortAudio callback for playback
-static int pa_callback(const void *input, void *output,
-                       unsigned long frameCount,
-                       const PaStreamCallbackTimeInfo* timeInfo,
-                       PaStreamCallbackFlags statusFlags,
-                       void *userData) {
-    Track *track = (Track*)userData;
-    float *out = (float*)output;
-
-    for (unsigned long i = 0; i < frameCount * track->info.channels; i++) {
-        if (track->position < track->frames) {
-            out[i] = track->buffer[track->position++];
-        } else {
-            out[i] = 0.0f; // silence after EOF
-        }
-    }
-    return (track->position >= track->frames) ? paComplete : paContinue;
-}
-
-// Load track into memory
 Track* load_track(const char *filename) {
     Track *t = malloc(sizeof(Track));
     t->info.format = 0;
     t->file = sf_open(filename, SFM_READ, &t->info);
     if (!t->file) {
-        fprintf(stderr, "[DJ] Error: could not open %s\n", filename);
+        fprintf(stderr, "[DJ] Error opening %s\n", filename);
         free(t);
         return NULL;
     }
@@ -51,61 +31,106 @@ Track* load_track(const char *filename) {
     return t;
 }
 
-// Play track
-void dj_play(const char *filename) {
-    Pa_Initialize();
-    Track *track = load_track(filename);
-    if (!track) return;
-
-    PaStream *stream;
-    Pa_OpenDefaultStream(&stream, 0, track->info.channels,
-                         paFloat32, track->info.samplerate,
-                         512, pa_callback, track);
-    Pa_StartStream(stream);
-
-    while (Pa_IsStreamActive(stream)) {
-        Pa_Sleep(100);
+// Low-pass filter (simple 1-pole IIR)
+void lowpass_filter(float *buffer, int frames, float alpha) {
+    float prev = buffer[0];
+    for (int i = 1; i < frames; i++) {
+        buffer[i] = alpha * buffer[i] + (1 - alpha) * prev;
+        prev = buffer[i];
     }
-
-    Pa_CloseStream(stream);
-    Pa_Terminate();
-
-    free(track->buffer);
-    free(track);
-    printf("[DJ] Finished playing %s\n", filename);
 }
 
-// Crossfade between two tracks
-void dj_crossfade(const char *a, const char *b, int duration) {
-    Track *t1 = load_track(a);
-    Track *t2 = load_track(b);
+// High-pass filter
+void highpass_filter(float *buffer, int frames, float alpha) {
+    float prev_in = buffer[0], prev_out = buffer[0];
+    for (int i = 1; i < frames; i++) {
+        float out = alpha * (prev_out + buffer[i] - prev_in);
+        buffer[i] = out;
+        prev_in = buffer[i];
+        prev_out = out;
+    }
+}
 
-    if (!t1 || !t2) return;
+// EQ (3-band simple)
+void eq_apply(float *buffer, int frames, float bass, float mid, float treble) {
+    for (int i = 0; i < frames; i++) {
+        float x = buffer[i];
+        buffer[i] = (bass * 0.4f + mid * 0.4f + treble * 0.2f) * x;
+    }
+}
+
+// Loop a segment
+void dj_loop(const char *filename, int start_sec, int length_sec, int repeat) {
+    Track *t = load_track(filename);
+    if (!t) return;
+    int start = start_sec * t->info.samplerate;
+    int length = length_sec * t->info.samplerate;
+    if (start + length > t->frames) length = t->frames - start;
 
     Pa_Initialize();
     PaStream *stream;
-    Pa_OpenDefaultStream(&stream, 0, t1->info.channels,
-                         paFloat32, t1->info.samplerate,
+    Pa_OpenDefaultStream(&stream, 0, t->info.channels,
+                         paFloat32, t->info.samplerate,
                          512, NULL, NULL);
-
     Pa_StartStream(stream);
 
-    int fadeFrames = duration * t1->info.samplerate;
-    for (int i = 0; i < fadeFrames; i++) {
-        float alpha = (float)i / fadeFrames; // fade curve
-        int pos1 = t1->position++;
-        int pos2 = t2->position++;
-        if (pos1 < t1->frames && pos2 < t2->frames) {
-            float mixed = (1.0f - alpha) * t1->buffer[pos1] + alpha * t2->buffer[pos2];
-            Pa_WriteStream(stream, &mixed, 1);
-        }
+    for (int r = 0; r < repeat; r++) {
+        Pa_WriteStream(stream, &t->buffer[start], length);
     }
 
     Pa_StopStream(stream);
     Pa_CloseStream(stream);
     Pa_Terminate();
 
-    free(t1->buffer); free(t1);
-    free(t2->buffer); free(t2);
-    printf("[DJ] Crossfaded %s -> %s in %ds\n", a, b, duration);
+    free(t->buffer); free(t);
+    printf("[DJ] Loop %d sec from %d s, repeated %d times\n", length_sec, start_sec, repeat);
+}
+
+// Drop effect (bass emphasis)
+void dj_drop(const char *filename, int intensity) {
+    Track *t = load_track(filename);
+    if (!t) return;
+
+    // simple bass boost: scale low freqs
+    for (int i = 0; i < t->frames; i++) {
+        t->buffer[i] *= (1.0f + intensity * 0.1f);
+    }
+
+    Pa_Initialize();
+    PaStream *stream;
+    Pa_OpenDefaultStream(&stream, 0, t->info.channels,
+                         paFloat32, t->info.samplerate,
+                         512, NULL, NULL);
+    Pa_StartStream(stream);
+    Pa_WriteStream(stream, t->buffer, t->frames);
+    Pa_StopStream(stream);
+    Pa_CloseStream(stream);
+    Pa_Terminate();
+
+    free(t->buffer); free(t);
+    printf("[DJ] Drop applied with intensity %d\n", intensity);
+}
+
+// Wrappers
+void dj_filter(const char *filename, const char *type, const char *param) {
+    Track *t = load_track(filename);
+    if (!t) return;
+    if (strcmp(type, "lowpass") == 0) {
+        lowpass_filter(t->buffer, t->frames, atof(param));
+        printf("[DJ] Low-pass filter applied alpha=%s\n", param);
+    } else if (strcmp(type, "highpass") == 0) {
+        highpass_filter(t->buffer, t->frames, atof(param));
+        printf("[DJ] High-pass filter applied alpha=%s\n", param);
+    }
+    Pa_Initialize();
+    PaStream *stream;
+    Pa_OpenDefaultStream(&stream, 0, t->info.channels,
+                         paFloat32, t->info.samplerate,
+                         512, NULL, NULL);
+    Pa_StartStream(stream);
+    Pa_WriteStream(stream, t->buffer, t->frames);
+    Pa_StopStream(stream);
+    Pa_CloseStream(stream);
+    Pa_Terminate();
+    free(t->buffer); free(t);
 }
