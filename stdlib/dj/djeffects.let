@@ -1,0 +1,25 @@
+Module:
+    Target: x86_64;
+    Version: 1.0;
+    Subject: DJ Effects Library;
+
+Entry:
+    Func lib():;
+
+Block:
+    Equation: Filter = (Type, Sweep);
+    Above: # e.g. Filter("lowpass", "4s")
+    Below: # Live effect
+
+Block:
+    Equation: Loop = (Length, Count);
+    Above: # Repeat segment
+    Below: # Applied runtime
+
+Block:
+    Equation: Drop = (Effect, Intensity);
+    Above: # e.g. Drop("bass", 8)
+    Below: # Verified at runtime
+
+End:
+    Return 0;
