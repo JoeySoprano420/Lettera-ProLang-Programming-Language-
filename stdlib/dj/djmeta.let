@@ -8,24 +8,28 @@ Entry:
 
 Block:
     Equation: BPM = <number>;
-    Above:
-        # Beats per minute
-    Below:
-        # Beats per minute;
+    Above: # Beats per minute
+    Below: # Beats per minute;
 
 Block:
     Equation: Key = <string>;
-    Above:
-        # Musical key
-    Below:
-        # Musical key;
+    Above: # Musical key
+    Below: # Musical key;
 
 Block:
-    Equation: Energy = <number>;
-    Above:
-        # Energy level 1–10
-    Below:
-        # Energy level 1–10;
+    Equation: Energy = <1-10>;
+    Above: # Energy rating
+    Below: # Energy rating;
+
+Block:
+    Equation: Genre = <string>;
+    Above: # Genre tag
+    Below: # Genre tag;
+
+Block:
+    Equation: Duration = <seconds>;
+    Above: # Track length
+    Below: # Track length;
 
 End:
     Return 0;
