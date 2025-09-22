@@ -1,0 +1,31 @@
+Module:
+    Target: x86_64;
+    Version: 1.0;
+    Subject: DJ Metadata Library;
+
+Entry:
+    Func lib():;
+
+Block:
+    Equation: BPM = <number>;
+    Above:
+        # Beats per minute
+    Below:
+        # Beats per minute;
+
+Block:
+    Equation: Key = <string>;
+    Above:
+        # Musical key
+    Below:
+        # Musical key;
+
+Block:
+    Equation: Energy = <number>;
+    Above:
+        # Energy level 1–10
+    Below:
+        # Energy level 1–10;
+
+End:
+    Return 0;
