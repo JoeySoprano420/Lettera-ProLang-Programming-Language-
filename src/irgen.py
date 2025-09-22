@@ -140,4 +140,48 @@ def str_constant(module, builder, name, s):
     gv.initializer = ir.Constant(arr_ty, bytearray(s.encode()))
     return builder.gep(gv, [ir.IntType(32)(0), ir.IntType(32)(0)])
 
+def handle_dj_command(cmd, args, builder, module, dj_funcs):
+    if cmd == "BPM":
+        builder.call(dj_funcs["dj_bpm"], [ir.Constant(ir.IntType(32), int(args[0]))])
+    elif cmd == "Key":
+        ptr = str_constant(module, builder, "keystr", args[0].strip('"'))
+        builder.call(dj_funcs["dj_key"], [ptr])
+    elif cmd == "Energy":
+        builder.call(dj_funcs["dj_energy"], [ir.Constant(ir.IntType(32), int(args[0]))])
+    elif cmd == "Genre":
+        ptr = str_constant(module, builder, "genrestr", args[0].strip('"'))
+        builder.call(dj_funcs["dj_genre"], [ptr])
+    elif cmd == "Crossfade":
+        duration = int(args[0].replace("s", ""))
+        ptr = str_constant(module, builder, "cftype", args[1].strip('"'))
+        builder.call(dj_funcs["dj_crossfade"], [ir.Constant(ir.IntType(32), duration), ptr])
+    elif cmd == "Filter":
+        tptr = str_constant(module, builder, "ftype", args[0].strip('"'))
+        sptr = str_constant(module, builder, "fsweep", args[1].strip('"'))
+        builder.call(dj_funcs["dj_filter"], [tptr, sptr])
+    elif cmd == "Loop":
+        length, count = map(int, args)
+        builder.call(dj_funcs["dj_loop"], [ir.Constant(ir.IntType(32), length),
+                                           ir.Constant(ir.IntType(32), count)])
+    elif cmd == "Drop":
+        ptr = str_constant(module, builder, "dropeffect", args[0].strip('"'))
+        builder.call(dj_funcs["dj_drop"], [ptr, ir.Constant(ir.IntType(32), int(args[1]))])
+    elif cmd == "Playlist":
+        ptr = str_constant(module, builder, "plname", args[0].strip('"'))
+        builder.call(dj_funcs["dj_playlist"], [ptr])
+    elif cmd == "Order":
+        a, b, method = args
+        aptr = str_constant(module, builder, "ordera", a.strip('"'))
+        bptr = str_constant(module, builder, "orderb", b.strip('"'))
+        mptr = str_constant(module, builder, "orderm", method.strip('"'))
+        builder.call(dj_funcs["dj_order"], [aptr, bptr, mptr])
+    elif cmd == "RecordSet":
+        ptr = str_constant(module, builder, "recfile", args[0].strip('"'))
+        builder.call(dj_funcs["dj_record"], [ptr])
+    elif cmd == "SealSet":
+        ptr = str_constant(module, builder, "sealhash", args[0].strip('"'))
+        builder.call(dj_funcs["dj_seal"], [ptr])
+    elif cmd == "Log":
+        ptr = str_constant(module, builder, "logevt", args[0].strip('"'))
+        builder.call(dj_funcs["dj_log"], [ptr])
 
